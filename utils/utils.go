@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	charSet = "_-abcdefghijklmnopqrstuwxyz"
+	charSet = "abcdefghijklmnopqrstuwxyz"
 )
 
 func ToDoc(input interface{}) (bson.D, error) {
@@ -28,7 +28,11 @@ func ToDoc(input interface{}) (bson.D, error) {
 
 func RString(min, max int) string {
 	out := ""
-	for i := 0; i < (RInt(max) + min); i++ {
+	m := (RInt(max) + min)
+	if m > max {
+		m = max
+	}
+	for i := 0; i < m; i++ {
 		out += string(charSet[RInt(len(charSet))])
 	}
 	return out

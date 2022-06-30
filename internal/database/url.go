@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"url-shortener/internal/models"
 	"url-shortener/utils"
 
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	urlColl   = "url"
+	urlColl   = "urls"
 	defaultDB = "url-shortener"
 )
 
@@ -35,7 +36,7 @@ func (client *Client) AddURL(url *models.URL) (*models.URL, error) {
 		Collection(urlColl).
 		InsertOne(client.Ctx, bsonURL)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "client.C.Database().Collection().InsertOne()")
 	}
 
 	return url, nil
@@ -48,7 +49,7 @@ func (client *Client) FindURL(url *models.URL) (*models.URL, bool, error) {
 	cursor, err := client.C.
 		Database(defaultDB).
 		Collection(urlColl).
-		Find(client.Ctx, bson.M{"full_path": url.FullPath})
+		Find(client.Ctx, bson.M{"source": url.Source})
 	if err != nil {
 		return nil, false, errors.Wrap(err, "client.C.Database().Collection().Find()")
 	}
@@ -68,4 +69,15 @@ func (client *Client) FindURL(url *models.URL) (*models.URL, bool, error) {
 	}
 
 	return urls[0], true, nil
+}
+
+func (client *Client) DelURL(url *models.URL) error {
+	_, err := client.C.
+		Database(defaultDB).
+		Collection(urlColl).
+		DeleteOne(context.TODO(), bson.M{"source": url.Source})
+	if err != nil {
+		return errors.Wrap(err, "client.C.Database().Collection().DeleteOne()")
+	}
+	return nil
 }
