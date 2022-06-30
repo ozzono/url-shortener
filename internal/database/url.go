@@ -18,7 +18,7 @@ const (
 func (client *Client) AddURL(url *models.URL) (*models.URL, error) {
 	url.Log("creating")
 
-	dbURL, found, err := client.FindURL(url)
+	dbURL, found, err := client.FindURLBySource(url)
 	if err != nil {
 		return dbURL, err
 	}
@@ -42,14 +42,11 @@ func (client *Client) AddURL(url *models.URL) (*models.URL, error) {
 	return url, nil
 }
 
-// Find searches the users collection using the email as key
-func (client *Client) FindURL(url *models.URL) (*models.URL, bool, error) {
-	url.Log("searching")
-
+func (client *Client) findURL(filter bson.M) (*models.URL, bool, error) {
 	cursor, err := client.C.
 		Database(defaultDB).
 		Collection(urlColl).
-		Find(client.Ctx, bson.M{"source": url.Source})
+		Find(client.Ctx, filter)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "client.C.Database().Collection().Find()")
 	}
@@ -71,6 +68,30 @@ func (client *Client) FindURL(url *models.URL) (*models.URL, bool, error) {
 	return urls[0], true, nil
 }
 
+func (client *Client) FindURLByShortened(url *models.URL) (*models.URL, bool, error) {
+	url.Log("searching")
+	url, found, err := client.findURL(bson.M{"shortened": url.Shortened})
+	if err != nil {
+		return nil, false, errors.Wrap(err, "client.findURL")
+	}
+	if !found {
+		return nil, false, nil
+	}
+	return url, found, nil
+}
+
+func (client *Client) FindURLBySource(url *models.URL) (*models.URL, bool, error) {
+	url.Log("searching")
+	url, found, err := client.findURL(bson.M{"source": url.Source})
+	if err != nil {
+		return nil, false, errors.Wrap(err, "client.findURL")
+	}
+	if !found {
+		return nil, false, nil
+	}
+	return url, found, nil
+}
+
 func (client *Client) DelURL(url *models.URL) error {
 	_, err := client.C.
 		Database(defaultDB).
@@ -83,7 +104,7 @@ func (client *Client) DelURL(url *models.URL) error {
 }
 
 func (client *Client) IncrementURL(url *models.URL) (*models.URL, error) {
-	url, found, err := client.FindURL(url)
+	url, found, err := client.FindURLBySource(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "client.FindURL")
 	}

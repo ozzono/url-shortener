@@ -33,11 +33,20 @@ func TestURL(t *testing.T) {
 	testURL.URL, err = client.AddURL(testURL.URL)
 	require.NoError(t, err, "failed to store test url")
 
-	url, found, err := client.FindURL(testURL.URL)
-	require.NoError(t, err, "client.FindURL")
+	url, found, err := client.FindURLBySource(testURL.URL)
+	require.NoError(t, err, "client.FindURLBySource")
 	require.Condition(t, func() (success bool) {
 		if !found {
-			testURL.Log("test url not found")
+			testURL.Log("source url not found")
+		}
+		return found
+	})
+
+	_, found, err = client.FindURLByShortened(testURL.URL)
+	require.NoError(t, err, "client.FindURLByShortened")
+	require.Condition(t, func() (success bool) {
+		if !found {
+			testURL.Log("shortened url not found")
 		}
 		return found
 	})
@@ -68,10 +77,10 @@ func TestURL(t *testing.T) {
 	err = client.DelURL(foundURL.URL)
 	require.NoError(t, err, "client.DelURL")
 
-	_, _, err = client.FindURL(foundURL.URL)
-	require.NoError(t, err, "client.FindURL")
+	_, found, err = client.FindURLBySource(foundURL.URL)
+	require.NoError(t, err, "client.FindURLBySource")
 	require.Condition(t, func() (success bool) {
-		return found
+		return !found
 	}, "found URL that should not exist")
 	incu.Log("found url")
 }
