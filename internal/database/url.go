@@ -81,3 +81,42 @@ func (client *Client) DelURL(url *models.URL) error {
 	}
 	return nil
 }
+
+func (client *Client) IncrementURL(url *models.URL) (*models.URL, error) {
+	url, found, err := client.FindURL(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "client.FindURL")
+	}
+	if !found {
+		return nil, errors.New(url.Source + " url not found")
+	}
+	url.Count++
+	err = client.UpdateURL(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "client.UpdateURL")
+	}
+	return url, nil
+}
+
+func (client *Client) UpdateURL(url *models.URL) error {
+	bsonURL, err := utils.ToDoc(url)
+	if err != nil {
+		return errors.Wrap(err, "utils.ToDoc")
+
+	}
+	update := bson.M{"$set": bsonURL}
+
+	_, err = client.C.
+		Database(defaultDB).
+		Collection(urlColl).
+		UpdateByID(client.Ctx, url.ID, update)
+		// UpdateOne(
+		// 	client.Ctx,
+		// 	bson.M{"$set": url.Source},
+		// 	bsonURL,
+		// )
+	if err != nil {
+		return errors.Wrap(err, "client.C.Database().Collection().UpdateOne()")
+	}
+	return nil
+}

@@ -52,6 +52,19 @@ func TestURL(t *testing.T) {
 		return eq
 	}, "found URL is not equal to test URL")
 
+	incURL, err := client.IncrementURL(url)
+	incu := testingURL{t, incURL}
+	require.NoError(t, err, "client.IncrementURL")
+	require.Condition(t, func() (success bool) {
+		success = url.Count+1 == incURL.Count
+		if !success {
+			u := testingURL{t, url}
+			incu.Log("   incremented")
+			u.Log("not incremented")
+		}
+		return
+	}, "failed to increment url counter")
+
 	err = client.DelURL(foundURL.URL)
 	require.NoError(t, err, "client.DelURL")
 
@@ -60,7 +73,7 @@ func TestURL(t *testing.T) {
 	require.Condition(t, func() (success bool) {
 		return found
 	}, "found URL that should not exist")
-	foundURL.Log("found url")
+	incu.Log("found url")
 }
 
 func (t testingURL) Log(header string) {
