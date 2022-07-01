@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"url-shortener/internal/database"
 	"url-shortener/internal/models"
@@ -48,15 +49,11 @@ func (h *Handler) AddURL(c *gin.Context) {
 		return
 	}
 
-	url, err := h.DB.AddURL(url, false)
+	url, err := h.DB.AddURL(url, true)
 	if err != nil {
 		models.HTTPErr(c, models.ErrMsg{Msg: "internal error"}, http.StatusBadRequest, err)
 		return
 	}
-	if url != nil {
-		url.Shortened = "/" + url.Shortened
-	}
-	url.Log("addurl route", true)
 
 	c.JSON(http.StatusOK, url)
 }
@@ -73,12 +70,9 @@ func (h *Handler) GetURL(c *gin.Context) {
 		models.HTTPErr(c, models.ErrMsg{Msg: "internal error"}, http.StatusBadRequest, err)
 		return
 	}
-	if url != nil {
-		url.Shortened = "/" + url.Shortened
-	}
 
 	if !found {
-		models.HTTPErr(c, models.ErrMsg{Msg: "url not found"}, http.StatusNotFound, nil)
+		models.HTTPErr(c, models.ErrMsg{Msg: "url not found"}, http.StatusNoContent, nil)
 		return
 	}
 
@@ -103,20 +97,23 @@ func (h *Handler) DelURL(c *gin.Context) {
 
 func (h *Handler) redirect(c *gin.Context) {
 	id := c.Param("id")
-	url, found, err := h.DB.FindURLByShortened(&models.URL{Shortened: id}, true)
-	if err != nil {
-		models.HTTPErr(c, models.ErrMsg{Msg: "internal error"}, http.StatusInternalServerError, err)
-		return
-	}
-	if !found {
-		models.HTTPErr(c, models.ErrMsg{Msg: "invalid url; path not found"}, http.StatusNotFound, nil)
-		return
-	}
-	_, err = h.DB.IncrementURL(url, true)
+	url, found, err := h.DB.FindURLByShortened(&models.URL{Shortened: id}, false)
 	if err != nil {
 		models.HTTPErr(c, models.ErrMsg{Msg: "internal error"}, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.Redirect(http.StatusOK, url.Source)
+	if !found {
+		models.HTTPErr(c, models.ErrMsg{Msg: "invalid url; path not found"}, http.StatusNotFound, nil)
+		return
+	}
+
+	_, err = h.DB.IncrementURL(url, true)
+	if err != nil {
+		models.HTTPErr(c, models.ErrMsg{Msg: "internal error"}, http.StatusInternalServerError, err)
+		return
+	}
+	log.Printf("redirecting to %s", url.Source)
+	http.Redirect(c.Writer, c.Request, url.Source, http.StatusPermanentRedirect)
+	// c.Redirect(http.StatusOK, url.Source)
 }
