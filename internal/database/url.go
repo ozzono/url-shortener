@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"url-shortener/internal/models"
 	"url-shortener/utils"
 
@@ -22,6 +21,7 @@ func (client *Client) AddURL(url *models.URL, debug bool) (*models.URL, error) {
 		return dbURL, errors.Wrap(err, "client.FindURLBySource")
 	}
 	if found {
+		dbURL.Log("already existent", debug)
 		return dbURL, nil
 	}
 	url.ID = primitive.NewObjectID()
@@ -117,7 +117,7 @@ func (client *Client) DelURL(url *models.URL) error {
 	_, err := client.C.
 		Database(defaultDB).
 		Collection(urlColl).
-		DeleteOne(context.TODO(), bson.M{"_id": url.ID})
+		DeleteOne(client.Ctx, bson.M{"_id": url.ID})
 	if err != nil {
 		return errors.Wrap(err, "client.C.Database().Collection().DeleteOne()")
 	}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"testing"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,26 +16,6 @@ type URL struct {
 	Source    string             `bson:"source"    json:"source"`
 	Shortened string             `bson:"shortened" json:"shortened,omitempty"`
 	Count     int                `bson:"count"     json:"count,omitempty"`
-}
-
-type TestURL struct {
-	*testing.T
-	*URL
-}
-
-func (t TestURL) Log(header string) {
-	if len(header) > 0 {
-		t.Logf("%s - testURL\n", header)
-		if t.URL == nil {
-			t.Log("nil url")
-			t.Fail()
-			return
-		}
-	}
-	t.Logf("testURL.ID --------- %s", t.URL.ID.String())
-	t.Logf("testURL.Source ----- %s", t.URL.Source)
-	t.Logf("testURL.Shortened -- %s", t.URL.Shortened)
-	t.Logf("testURL.Count ------ %d", t.URL.Count)
 }
 
 func (url *URL) Log(header string, debug bool) {
