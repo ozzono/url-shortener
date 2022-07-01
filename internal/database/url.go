@@ -15,17 +15,17 @@ const (
 	defaultDB = "url-shortener"
 )
 
-func (client *Client) AddURL(url *models.URL) (*models.URL, error) {
-	url.Log("creating")
+func (client *Client) AddURL(url *models.URL, debug bool) (*models.URL, error) {
 
-	dbURL, found, err := client.FindURLBySource(url)
+	dbURL, found, err := client.FindURLBySource(url, false)
 	if err != nil {
-		return dbURL, err
+		return dbURL, errors.Wrap(err, "client.FindURLBySource")
 	}
 	if found {
-		return nil, nil
+		return dbURL, nil
 	}
 	url.ID = primitive.NewObjectID()
+	url.Shortened = utils.RString(5, 7)
 	bsonURL, err := utils.ToDoc(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "utils.ToDoc")
@@ -39,10 +39,11 @@ func (client *Client) AddURL(url *models.URL) (*models.URL, error) {
 		return nil, errors.Wrap(err, "client.C.Database().Collection().InsertOne()")
 	}
 
+	url.Log("creating", debug)
 	return url, nil
 }
 
-func (client *Client) findURL(filter bson.M) (*models.URL, bool, error) {
+func (client *Client) findURL(filter bson.M, debug bool) (*models.URL, bool, error) {
 	cursor, err := client.C.
 		Database(defaultDB).
 		Collection(urlColl).
@@ -68,27 +69,47 @@ func (client *Client) findURL(filter bson.M) (*models.URL, bool, error) {
 	return urls[0], true, nil
 }
 
-func (client *Client) FindURLByShortened(url *models.URL) (*models.URL, bool, error) {
-	url.Log("searching")
-	url, found, err := client.findURL(bson.M{"shortened": url.Shortened})
+func (client *Client) FindURLByID(url *models.URL, debug bool) (*models.URL, bool, error) {
+	url, found, err := client.findURL(bson.M{"_id": url.ID}, debug)
+
 	if err != nil {
 		return nil, false, errors.Wrap(err, "client.findURL")
 	}
+
 	if !found {
 		return nil, false, nil
 	}
+
+	url.Log("searching by id", debug)
 	return url, found, nil
 }
 
-func (client *Client) FindURLBySource(url *models.URL) (*models.URL, bool, error) {
-	url.Log("searching")
-	url, found, err := client.findURL(bson.M{"source": url.Source})
+func (client *Client) FindURLByShortened(url *models.URL, debug bool) (*models.URL, bool, error) {
+	url, found, err := client.findURL(bson.M{"shortened": url.Shortened}, debug)
+
 	if err != nil {
 		return nil, false, errors.Wrap(err, "client.findURL")
 	}
+
 	if !found {
 		return nil, false, nil
 	}
+
+	url.Log("searching by shortened", debug)
+	return url, found, nil
+}
+
+func (client *Client) FindURLBySource(url *models.URL, debug bool) (*models.URL, bool, error) {
+	url, found, err := client.findURL(bson.M{"source": url.Source}, debug)
+	if err != nil {
+		return nil, false, errors.Wrap(err, "client.findURL")
+	}
+
+	if !found {
+		return nil, false, nil
+	}
+
+	url.Log("searching by source", debug)
 	return url, found, nil
 }
 
@@ -96,15 +117,15 @@ func (client *Client) DelURL(url *models.URL) error {
 	_, err := client.C.
 		Database(defaultDB).
 		Collection(urlColl).
-		DeleteOne(context.TODO(), bson.M{"source": url.Source})
+		DeleteOne(context.TODO(), bson.M{"_id": url.ID})
 	if err != nil {
 		return errors.Wrap(err, "client.C.Database().Collection().DeleteOne()")
 	}
 	return nil
 }
 
-func (client *Client) IncrementURL(url *models.URL) (*models.URL, error) {
-	url, found, err := client.FindURLBySource(url)
+func (client *Client) IncrementURL(url *models.URL, debug bool) (*models.URL, error) {
+	url, found, err := client.FindURLBySource(url, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "client.FindURL")
 	}
@@ -116,6 +137,8 @@ func (client *Client) IncrementURL(url *models.URL) (*models.URL, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "client.UpdateURL")
 	}
+
+	url.Log("incrementing counter", debug)
 	return url, nil
 }
 
