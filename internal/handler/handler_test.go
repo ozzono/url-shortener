@@ -88,8 +88,7 @@ func TestAPIRedirect(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/"+testURL.Shortened, nil)
 	require.NoError(t, err, "http.NewRequest")
 	handler.Router.ServeHTTP(w, req)
-	require.Equal(t, http.StatusOK, w.Code)
-	t.Logf("%#v", w)
+	require.Equal(t, http.StatusPermanentRedirect, w.Code)
 }
 
 func TestAPIDelRoute(t *testing.T) {

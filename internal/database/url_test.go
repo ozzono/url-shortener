@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"url-shortener/internal/models"
@@ -23,33 +22,26 @@ func TestURL(t *testing.T) {
 	testURL, err = client.AddURL(testURL, false)
 	require.NoError(t, err, "failed to store test url")
 
-	url, found, err := client.FindURLBySource(testURL, false)
+	foundURL, found, err := client.FindURLBySource(testURL, false)
 	require.NoError(t, err, "client.FindURLBySource")
 	require.True(t, found, "source url not found")
 
-	_, found, err = client.FindURLByShortened(testURL, false)
+	shortURL, found, err := client.FindURLByShortened(testURL, false)
 	require.NoError(t, err, "client.FindURLByShortened")
-	require.True(t, found, "shortened url not found")
+	require.True(t, found, "url not found by shortened reference")
 
-	foundURL := new(models.URL)
-	require.Condition(t, func() (success bool) {
-		return reflect.DeepEqual(foundURL, testURL)
-	}, "found URL is not equal to test URL")
+	require.Equal(t, shortURL, foundURL, "shortURL != foundURL")
 
-	incURL, err := client.IncrementURL(url, false)
-	incu := new(models.URL)
+	incURL, err := client.IncrementURL(foundURL, false)
 	require.NoError(t, err, "client.IncrementURL")
-	require.Condition(t, func() (success bool) {
-		return url.Count+1 == incURL.Count
-	}, "failed to increment url counter")
+	require.Equal(t, foundURL.Count+1, incURL.Count, "failed to increment url counter")
 
 	err = client.DelURL(foundURL)
 	require.NoError(t, err, "client.DelURL")
 
 	_, found, err = client.FindURLBySource(foundURL, false)
 	require.NoError(t, err, "client.FindURLBySource")
-	require.Condition(t, func() (success bool) {
-		return !found
-	}, "found URL that should not exist")
-	incu.Log("found url", true)
+	require.True(t, !found, "found URL that should not exist")
+
+	incURL.Log("found and incremented url", true)
 }
