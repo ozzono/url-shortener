@@ -1,0 +1,213 @@
+{
+	"info": {
+		"_postman_id": "e6f40c20-80d1-4825-85f4-cfb2a899a3d7",
+		"name": "url-shortener",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21779075"
+	},
+	"item": [
+		{
+			"name": "api",
+			"item": [
+				{
+					"name": "create short url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"data=JSON.parse(responseBody)",
+									"pm.environment.set(\"urlID\", data.id);",
+									"pm.environment.set(\"shortened\", data.shortened);",
+									"console.log(data.id)",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"source\":\"https://go.dev\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/api/",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get url data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"data=JSON.parse(responseBody)",
+									"pm.environment.set(\"urlID\", data.id);",
+									"pm.environment.set(\"shortened\", data.shortened);",
+									"console.log(data.id)",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/api/{{urlID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"{{urlID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "del url data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/api/{{urlID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"{{urlID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ping",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/ping",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "redirect short url",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/{{shortened}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"{{shortened}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
