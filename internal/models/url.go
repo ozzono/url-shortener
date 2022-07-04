@@ -29,7 +29,7 @@ func (url *URL) Log(header string, debug bool) {
 			return
 		}
 	}
-	log.Printf("url.ID --------- %s", url.ID.String())
+	log.Printf("url.ID --------- %s", url.ID.Hex())
 	log.Printf("url.Source ----- %s", url.Source)
 	log.Printf("url.Shortened -- %s", url.Shortened)
 	log.Printf("url.Count ------ %d", url.Count)
