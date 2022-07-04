@@ -48,7 +48,7 @@ I failed to make swagger work as intended, so I also wrote a PostMan Collection 
             "id":        "62bf0ff21d37e4cfa5608b0a",
             "source":    "https://go.dev",
             "shortened": "hkujzph",
-            "count:      0,
+            "count":      0,
         }
         ```
 
@@ -61,7 +61,7 @@ I failed to make swagger work as intended, so I also wrote a PostMan Collection 
             "id":        "62bf0ff21d37e4cfa5608b0a",
             "source":    "https://go.dev",
             "shortened": "hkujzph",
-            "count:      0,
+            "count":      0,
         }
         ```
 
